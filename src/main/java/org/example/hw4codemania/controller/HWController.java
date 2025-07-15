@@ -13,7 +13,7 @@ public class HWController {
         this.service = service;
     }
 
-    @GetMapping(path = "/hw")
+    @GetMapping(path = "/v1/hw")
     public ResponseEntity<String> getHW() {
         String hw = service.getHW();
         return ResponseEntity.ok(hw);
