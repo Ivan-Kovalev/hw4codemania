@@ -1,25 +1,55 @@
 name: hw4codemania
+
 on:
   push:
-    branches: [dev, master]
+    branches:
+      - main
+      - dev
   pull_request:
-    branches: [dev, master]
+    branches:
+      - main
+      - dev
 
 jobs:
-  test:
-    name: Run test
+  build-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21 for x64
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          architecture: x64
+          java-version: 21
 
-      - name: Run the Maven verify phase
-        run: mvn --batch-mode --update-snapshots verify
+      - name: Compile
+        run: mvn compile
+
+      - name: Run Tests
+        run: mvn test
+
+      - name: Build
+        run: mvn package -DskipTests
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # SSH ключ в Secrets репозитория
+          SERVER_IP: ${{ secrets.SERVER_IP }}  # IP сервера
+          SERVER_USER: ${{ secrets.SERVER_USER }}  # Имя пользователя для SSH на серве
+          REMOTE_DIR: C:\Users\Иван\IdeaProjects\hw4codemania  # Путь к папке для развертывания
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+
+          scp -o StrictHostKeyChecking=no -i private_key.pem target/*.jar $SERVER_USER@$SERVER_IP:$REMOTE_DIR
+          
+          ssh -o StrictHostKeyChecking=no -i private_key.pem $SERVER_USER@$SERVER_IP "java -jar $REMOTE_DIR/your-app-name.jar &"  # Замените на имя вашего jar файла
