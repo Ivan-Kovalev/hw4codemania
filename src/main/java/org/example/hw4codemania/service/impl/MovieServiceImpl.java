@@ -4,16 +4,12 @@ import org.example.hw4codemania.dto.MoviePremiere;
 import org.example.hw4codemania.dto.MovieRate;
 import org.example.hw4codemania.reader.CsvReader;
 import org.example.hw4codemania.service.MovieService;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Service
 public class MovieServiceImpl implements MovieService {
 
     private final CsvReader reader;

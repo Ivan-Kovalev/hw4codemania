@@ -1,18 +1,15 @@
 package org.example.hw4codemania.service.impl;
 
 import org.example.hw4codemania.reader.CsvReader;
-import org.example.hw4codemania.util.TestUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
 import static org.example.hw4codemania.util.TestUtil.FILE;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class MovieServiceImplTest {
 
     MovieServiceImpl service;
@@ -22,6 +19,7 @@ class MovieServiceImplTest {
 
     @BeforeEach
     public void setUp() {
+        MockitoAnnotations.openMocks(this);
         service = new MovieServiceImpl(reader);
         when(reader.getFile()).thenReturn(FILE);
     }
