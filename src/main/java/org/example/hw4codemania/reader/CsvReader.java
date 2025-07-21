@@ -8,15 +8,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Locale;
 
 public class CsvReader {
 
-    public List<String[]> getFile() {
-        try (InputStream inputStream = getClass().getResourceAsStream("/NetflixOriginals.csv");
+    public List<String[]> getFile(String filePath) {
+        try (InputStream inputStream = getClass().getResourceAsStream(filePath);
              CSVReader reader = new CSVReader(new InputStreamReader(inputStream))) {
 
             return reader.readAll().stream().skip(1).toList();
@@ -26,17 +25,17 @@ public class CsvReader {
         }
     }
 
-    public LocalDate getDate(String dateString) {
-        DateTimeFormatter dateFormat = new DateTimeFormatterBuilder()
-                .appendOptional(DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH))
-                .appendOptional(DateTimeFormatter.ofPattern("MMMM d. yyyy", Locale.ENGLISH))
-                .toFormatter();
-
+    public LocalDate parseDate(String dateString) {
         try {
-            return LocalDate.parse(dateString, dateFormat);
-        } catch (DateTimeParseException e) {
+            return LocalDate.parse(dateString, DateTimeFormatter.ofPattern("MMMM d, yyyy", Locale.ENGLISH));
+        } catch (DateTimeParseException e1) {
+            try {
+                return LocalDate.parse(dateString, DateTimeFormatter.ofPattern("MMMM d. yyyy", Locale.ENGLISH));
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
             System.err.println("Ошибка при парсинге даты: " + dateString);
-            e.printStackTrace();
+            e1.printStackTrace();
             return null;
         }
     }

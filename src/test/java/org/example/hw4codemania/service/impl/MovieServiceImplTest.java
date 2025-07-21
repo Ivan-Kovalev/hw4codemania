@@ -21,7 +21,8 @@ class MovieServiceImplTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         service = new MovieServiceImpl(reader);
-        when(reader.getFile()).thenReturn(FILE);
+        String filePath = "/NetflixOriginals.csv";
+        when(reader.getFile(filePath)).thenReturn(FILE);
     }
 
     @Test
@@ -41,15 +42,19 @@ class MovieServiceImplTest {
     @Test
     void getNewAndOldMovie() {
         String expected =
-                "Oldest Movie: The Open House, January 19, 2018\nNewest Movie: Sentinelle, March 5, 2021";
+                "Oldest Movie: The Open House, 2018-01-12\nNewest Movie: Sentinelle, 2021-03-05";
         Assertions.assertEquals(expected, service.getNewAndOldMovie());
     }
 
     @Test
     void getTotalDurationMovie() {
+        Assertions.assertEquals("900", service.getTotalDurationMovie());
     }
 
     @Test
     void getBestAndWorstMovie() {
+        String expected = "Best: Christmas Crossfire - 4.8\n" +
+                " Worst: Enter the Anime - 2.5";
+        Assertions.assertEquals(expected, service.getBestAndWorstMovie());
     }
 }

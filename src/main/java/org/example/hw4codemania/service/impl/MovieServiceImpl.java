@@ -6,6 +6,7 @@ import org.example.hw4codemania.reader.CsvReader;
 import org.example.hw4codemania.service.MovieService;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -13,14 +14,25 @@ import java.util.stream.Collectors;
 public class MovieServiceImpl implements MovieService {
 
     private final CsvReader reader;
+    private List<String[]> movieData;
 
     public MovieServiceImpl(CsvReader reader) {
         this.reader = reader;
+        loadMovieData();
+    }
+
+    private void loadMovieData() {
+        try {
+            String filePath = "/NetflixOriginals.csv";
+            movieData = reader.getFile(filePath);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load movie data", e);
+        }
     }
 
     @Override
     public String getCountMovieAllGenre() {
-        Map<String, Long> countAllGenre = reader.getFile().stream()
+        Map<String, Long> countAllGenre = movieData.stream()
                 .map(arr -> arr[1])
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
@@ -31,7 +43,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public String getFiveMostPopularMovie() {
-        return reader.getFile().stream()
+        return movieData.stream()
                 .map(arr -> new MovieRate(arr[0], Double.parseDouble(arr[4])))
                 .sorted(Comparator.comparingDouble(MovieRate::getRating).reversed())
                 .limit(5)
@@ -40,13 +52,13 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public String getNewAndOldMovie() {
-        MoviePremiere oldest = reader.getFile().stream()
-                .map(arr -> new MoviePremiere(arr[0], reader.getDate(arr[2])))
+        MoviePremiere oldest = movieData.stream()
+                .map(arr -> new MoviePremiere(arr[0], reader.parseDate(arr[2])))
                 .min(Comparator.comparing(MoviePremiere::getPremiere))
                 .orElse(null);
 
-        MoviePremiere newest = reader.getFile().stream()
-                .map(arr -> new MoviePremiere(arr[0], reader.getDate(arr[2])))
+        MoviePremiere newest = movieData.stream()
+                .map(arr -> new MoviePremiere(arr[0], reader.parseDate(arr[2])))
                 .max(Comparator.comparing(MoviePremiere::getPremiere))
                 .orElse(null);
 
@@ -55,24 +67,22 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public String getTotalDurationMovie() {
-        return reader.getFile().stream()
+        return movieData.stream()
                 .map(arr -> Integer.parseInt(arr[3]))
                 .reduce(0, Integer::sum).toString();
     }
 
     @Override
     public String getBestAndWorstMovie() {
-
-        MovieRate best = reader.getFile().stream()
+        MovieRate best = movieData.stream()
                 .map(arr -> new MovieRate(arr[0], Double.parseDouble(arr[4])))
-                .sorted(Comparator.comparingDouble(MovieRate::getRating).reversed())
-                .findFirst().get();
+                .max(Comparator.comparingDouble(MovieRate::getRating))
+                .orElse(null);
 
-        MovieRate worst = reader.getFile().stream()
+        MovieRate worst = movieData.stream()
                 .map(arr -> new MovieRate(arr[0], Double.parseDouble(arr[4])))
-                .sorted(Comparator.comparingDouble(MovieRate::getRating))
-                .findFirst().get();
-
+                .min(Comparator.comparingDouble(MovieRate::getRating))
+                .orElse(null);
         return "Best: " + best + "\n Worst: " + worst;
     }
 }

@@ -10,6 +10,7 @@ public class Main {
         CsvReader reader = new CsvReader();
         MovieService service = new MovieServiceImpl(reader);
 
-        System.out.println(service.getNewAndOldMovie());
+        System.out.println(service.getBestAndWorstMovie());
+
     }
 }
