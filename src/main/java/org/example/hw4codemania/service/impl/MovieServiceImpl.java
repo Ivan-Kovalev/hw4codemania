@@ -63,17 +63,12 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public String getNewAndOldMovie() {
-        MoviePremiere oldest = movieData.stream()
+        List<MoviePremiere> sortedMovieForPremiere = movieData.stream()
                 .map(arr -> new MoviePremiere(arr.getTitle(), reader.parseDate(arr.getPremiere())))
-                .min(Comparator.comparing(MoviePremiere::getPremiere))
-                .orElse(null);
+                .sorted(Comparator.comparing(MoviePremiere::getPremiere))
+                .toList();
 
-        MoviePremiere newest = movieData.stream()
-                .map(arr -> new MoviePremiere(arr.getTitle(), reader.parseDate(arr.getPremiere())))
-                .max(Comparator.comparing(MoviePremiere::getPremiere))
-                .orElse(null);
-
-        return "Oldest Movie: " + oldest + "\n" + "Newest Movie: " + newest;
+        return "Oldest Movie: " + sortedMovieForPremiere.getFirst() + "\n" + "Newest Movie: " + sortedMovieForPremiere.getLast();
     }
 
     @Override
@@ -85,15 +80,11 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public String getBestAndWorstMovie() {
-        MovieRate best = movieData.stream()
+        List<MovieRate> sortedMovieForRating = movieData.stream()
                 .map(arr -> new MovieRate(arr.getTitle(), arr.getRating()))
-                .max(Comparator.comparingDouble(MovieRate::getRating))
-                .orElse(null);
+                .sorted(Comparator.comparingDouble(MovieRate::getRating))
+                .toList();
 
-        MovieRate worst = movieData.stream()
-                .map(arr -> new MovieRate(arr.getTitle(), arr.getRating()))
-                .min(Comparator.comparingDouble(MovieRate::getRating))
-                .orElse(null);
-        return "Best: " + best + "\n Worst: " + worst;
+        return "Best: " + sortedMovieForRating.getLast() + "\n Worst: " + sortedMovieForRating.getFirst();
     }
 }
