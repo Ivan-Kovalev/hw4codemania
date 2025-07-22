@@ -4,9 +4,9 @@ public class MovieRate {
     private String title;
     private double rating;
 
-    public MovieRate(String title, double rating) {
+    public MovieRate(String title, Double rating) {
         this.title = title;
-        this.rating = rating;
+        this.rating = Math.round(rating * 10) / 10.0;
     }
 
     public String getTitle() {

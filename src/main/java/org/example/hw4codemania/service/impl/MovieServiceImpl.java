@@ -2,9 +2,9 @@ package org.example.hw4codemania.service.impl;
 
 import org.example.hw4codemania.dto.MoviePremiere;
 import org.example.hw4codemania.dto.MovieRate;
+import org.example.hw4codemania.model.MovieRecord;
 import org.example.hw4codemania.reader.CsvReader;
 import org.example.hw4codemania.service.MovieService;
-import org.example.hw4codemania.util.MovieReaderUtil;
 
 import java.util.Comparator;
 import java.util.List;
@@ -17,17 +17,25 @@ import static org.example.hw4codemania.util.MovieReaderUtil.*;
 public class MovieServiceImpl implements MovieService {
 
     private final CsvReader reader;
-    private List<String[]> movieData;
+    private List<MovieRecord> movieData;
+    private final String filePath = "/NetflixOriginals.csv";
 
     public MovieServiceImpl(CsvReader reader) {
         this.reader = reader;
-        loadMovieData();
+        loadMovieData(filePath);
     }
 
-    private void loadMovieData() {
+    private void loadMovieData(String filePath) {
         try {
-            String filePath = "/NetflixOriginals.csv";
-            movieData = reader.getFile(filePath);
+            movieData = reader.getFile(filePath).stream()
+                    .map(arr -> new MovieRecord(
+                            arr[TITLE_INDEX],
+                            arr[GENRE_INDEX],
+                            arr[PREMIERE_INDEX],
+                            Integer.parseInt(arr[RUNTIME_INDEX]),
+                            Double.parseDouble(arr[RATING_INDEX]),
+                            arr[LANGUAGE_INDEX]))
+                    .toList();
         } catch (Exception e) {
             throw new RuntimeException("Failed to load movie data", e);
         }
@@ -36,7 +44,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public String getCountMovieAllGenre() {
         Map<String, Long> countAllGenre = movieData.stream()
-                .map(arr -> arr[GENRE_INDEX])
+                .map(MovieRecord::getGenre)
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
         return countAllGenre.entrySet().stream()
@@ -47,7 +55,7 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public String getFiveMostPopularMovie() {
         return movieData.stream()
-                .map(arr -> new MovieRate(arr[TITLE_INDEX], Double.parseDouble(arr[RATING_INDEX])))
+                .map(arr -> new MovieRate(arr.getTitle(), arr.getRating()))
                 .sorted(Comparator.comparingDouble(MovieRate::getRating).reversed())
                 .limit(5)
                 .toList().toString();
@@ -56,12 +64,12 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public String getNewAndOldMovie() {
         MoviePremiere oldest = movieData.stream()
-                .map(arr -> new MoviePremiere(arr[TITLE_INDEX], reader.parseDate(arr[PREMIERE_INDEX])))
+                .map(arr -> new MoviePremiere(arr.getTitle(), reader.parseDate(arr.getPremiere())))
                 .min(Comparator.comparing(MoviePremiere::getPremiere))
                 .orElse(null);
 
         MoviePremiere newest = movieData.stream()
-                .map(arr -> new MoviePremiere(arr[TITLE_INDEX], reader.parseDate(arr[PREMIERE_INDEX])))
+                .map(arr -> new MoviePremiere(arr.getTitle(), reader.parseDate(arr.getPremiere())))
                 .max(Comparator.comparing(MoviePremiere::getPremiere))
                 .orElse(null);
 
@@ -71,19 +79,19 @@ public class MovieServiceImpl implements MovieService {
     @Override
     public String getTotalDurationMovie() {
         return movieData.stream()
-                .map(arr -> Integer.parseInt(arr[RUNTIME_INDEX]))
+                .map(MovieRecord::getRuntime)
                 .reduce(0, Integer::sum).toString();
     }
 
     @Override
     public String getBestAndWorstMovie() {
         MovieRate best = movieData.stream()
-                .map(arr -> new MovieRate(arr[TITLE_INDEX], Double.parseDouble(arr[RATING_INDEX])))
+                .map(arr -> new MovieRate(arr.getTitle(), arr.getRating()))
                 .max(Comparator.comparingDouble(MovieRate::getRating))
                 .orElse(null);
 
         MovieRate worst = movieData.stream()
-                .map(arr -> new MovieRate(arr[TITLE_INDEX], Double.parseDouble(arr[RATING_INDEX])))
+                .map(arr -> new MovieRate(arr.getTitle(), arr.getRating()))
                 .min(Comparator.comparingDouble(MovieRate::getRating))
                 .orElse(null);
         return "Best: " + best + "\n Worst: " + worst;
